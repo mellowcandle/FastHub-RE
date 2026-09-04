@@ -161,7 +161,7 @@ object DownloadProvider {
             } catch (e: Exception) {
 
             }
-            if (packageInfo != null && packageInfo.applicationInfo.enabled) {
+            if (packageInfo != null && packageInfo.applicationInfo?.enabled == true) {
                 downloads.add(arr[3])
                 downloadsValues.add(arr[4])
             }

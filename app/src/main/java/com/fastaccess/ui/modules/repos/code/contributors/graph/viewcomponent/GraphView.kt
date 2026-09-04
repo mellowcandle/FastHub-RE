@@ -126,8 +126,7 @@ class GraphView @JvmOverloads constructor(
         path.lineTo(startX, maxHeight)
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        if (canvas == null) return
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         var decHeight = 0f
         for(i in 0 until maxLines) {

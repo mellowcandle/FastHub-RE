@@ -67,7 +67,7 @@ abstract class BaseBottomSheetDialog : BottomSheetDialogFragment() {
         view.viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 view.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                val parent = dialog?.findViewById<View>(R.id.design_bottom_sheet)
+                val parent = dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
                 if (parent != null) {
                     bottomSheetBehavior = BottomSheetBehavior.from(parent)
                     bottomSheetBehavior!!.addBottomSheetCallback(bottomSheetCallback)

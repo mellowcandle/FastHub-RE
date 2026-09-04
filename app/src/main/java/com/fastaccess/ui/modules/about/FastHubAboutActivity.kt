@@ -44,7 +44,7 @@ class FastHubAboutActivity : MaterialAboutActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         applyForAbout(this)
         super.onCreate(savedInstanceState)
-        malRecyclerview = findViewById(R.id.mal_recyclerview)
+        malRecyclerview = findViewById(com.danielstone.materialaboutlibrary.R.id.mal_recyclerview)
     }
 
     override fun getMaterialAboutList(context: Context): MaterialAboutList {

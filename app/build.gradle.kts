@@ -30,8 +30,7 @@ val config = loadConfig()
 
 android {
     namespace = "com.fastaccess"
-    compileSdk = 31
-    buildToolsVersion = "31.0.0"
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.fastaccess.github.revival"
         minSdk = 25
@@ -81,9 +80,15 @@ android {
         htmlReport = true
         xmlReport = true
     }
+    buildFeatures {
+        buildConfig = true
+    }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
     sourceSets {
         getByName("main") {

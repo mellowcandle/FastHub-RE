@@ -3,6 +3,7 @@ package com.fastaccess.helper
 import android.R
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.animation.ObjectAnimator
 import android.app.Dialog
 import android.view.View
@@ -179,12 +180,12 @@ object AnimHelper {
                         animator.addListener(listenerAdapter)
                         animator.start()
                     } else {
-                        listenerAdapter.onAnimationEnd(null)
+                        listenerAdapter.onAnimationEnd(ValueAnimator())
                     }
                 }
             }
         } else {
-            listenerAdapter.onAnimationEnd(null)
+            listenerAdapter.onAnimationEnd(ValueAnimator())
         }
     }
 

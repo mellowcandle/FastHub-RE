@@ -466,7 +466,7 @@ class RepoPagerActivity : BaseActivity<RepoPagerMvp.View, RepoPagerPresenter>(),
             .append(Formatter.formatFileSize(this, repoSize))
         size!!.visibility = View.GONE
         title!!.text = repoModel.fullName
-        TextViewCompat.setTextAppearance(title!!, R.style.TextAppearance_AppCompat_Medium)
+        TextViewCompat.setTextAppearance(title!!, androidx.appcompat.R.style.TextAppearance_AppCompat_Medium)
         title!!.setTextColor(ViewHelper.getPrimaryTextColor(this))
         if (repoModel.license != null) {
             licenseLayout!!.visibility = View.VISIBLE

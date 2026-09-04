@@ -27,7 +27,7 @@ class GitHubContributionsView : View {
     private var displayMonth = false
     private var lastWeeks = 53
     private var username: String? = null
-    private var rect: Rect? = null
+    private val rect: Rect = Rect()
     private var monthTextPaint: Paint? = null
     private val mMatrix = Matrix()
     private val paint = Paint()
@@ -85,7 +85,6 @@ class GitHubContributionsView : View {
             attrs, R.styleable.GitHubContributionsView, defStyleAttr, defStyleRes
         )
         initAttributes(attributes)
-        rect = Rect()
         monthTextPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         blockPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         blockPaint!!.style = Paint.Style.FILL
@@ -346,7 +345,7 @@ class GitHubContributionsView : View {
     private fun drawPlaceholder(canvas: Canvas) {
         if (!isInEditMode) return
         canvas.getClipBounds(rect)
-        val width = rect!!.width()
+        val width = rect.width()
         val verticalBlockNumber = 7
         val horizontalBlockNumber = getHorizontalBlockNumber(lastWeeks * 7, verticalBlockNumber)
         val marginBlock = 1.0f - 0.1f

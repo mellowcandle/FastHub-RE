@@ -27,13 +27,13 @@ import java.util.*
 object ViewHelper {
     @ColorInt
     fun getPrimaryDarkColor(context: Context): Int {
-        return getColorAttr(context, R.attr.colorPrimaryDark)
+        return getColorAttr(context, androidx.appcompat.R.attr.colorPrimaryDark)
     }
 
     @JvmStatic
     @ColorInt
     fun getPrimaryColor(context: Context): Int {
-        return getColorAttr(context, R.attr.colorPrimary)
+        return getColorAttr(context, androidx.appcompat.R.attr.colorPrimary)
     }
 
     @JvmStatic
@@ -54,7 +54,7 @@ object ViewHelper {
 
     @ColorInt
     fun getAccentColor(context: Context): Int {
-        return getColorAttr(context, R.attr.colorAccent)
+        return getColorAttr(context, androidx.appcompat.R.attr.colorAccent)
     }
 
     @ColorInt
@@ -119,7 +119,8 @@ object ViewHelper {
         return (dp * context.resources.displayMetrics.density + 0.5f).toInt()
     }
 
-    fun tintDrawable(drawable: Drawable, @ColorInt color: Int) {
+    fun tintDrawable(drawable: Drawable?, @ColorInt color: Int) {
+        if (drawable == null) return
         val filter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
         drawable.mutate().colorFilter = filter
     }

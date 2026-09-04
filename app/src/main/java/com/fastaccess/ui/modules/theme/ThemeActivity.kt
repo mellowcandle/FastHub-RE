@@ -81,7 +81,7 @@ class ThemeActivity : BaseActivity<BaseMvp.FAView, BasePresenter<BaseMvp.FAView>
             val anim =
                 ViewAnimationUtils.createCircularReveal(parentLayout, cx, cy, 0f, finalRadius)
             anim.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
+                override fun onAnimationEnd(animation: Animator) {
                     super.onAnimationEnd(animation)
                     window?.statusBarColor = color
                     changeNavColor(color)
