@@ -31,13 +31,16 @@ class TrendingFragmentPresenter : BasePresenter<TrendingFragmentMvp.View>(),
     override fun onItemLongClick(position: Int, v: View?, item: TrendingModel) {}
 
     override fun onItemClick(position: Int, v: View?, item: TrendingModel) {
-        val split = item.title?.trim()?.split("/")!!
-        v?.context!!.startActivity(
-            RepoPagerActivity.createIntent(
-                v.context!!,
-                split[1].trim(),
-                split[0].trim()
-            )
+        val context = v?.context ?: return
+        // "owner / repo" as scraped. If the markup changed and the title came back
+        // empty, skip the tap rather than crashing on split[1].
+        val split = item.title?.split("/")
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?: return
+        if (split.size < 2) return
+        context.startActivity(
+            RepoPagerActivity.createIntent(context, split[1], split[0])
         )
     }
 
@@ -82,7 +85,10 @@ class TrendingFragmentPresenter : BasePresenter<TrendingFragmentMvp.View>(),
                 list?.let { it ->
                     if (list.isNotEmpty()) {
                         val models = it.map { element ->
-                            val title = element.select("h1 > a").text()
+                            // GitHub serves the repo name in <h2 class="h3 lh-condensed">;
+                            // it used to be <h1>. Accept either so a future flip back
+                            // does not silently blank every row again.
+                            val title = element.select("h1 > a, h2 > a").text()
                             val description = element.select("p").text()
                             val stars = element.select(".f6 > a[href*=/stargazers]").text()
                             val forks = element.select(".f6 > a[href*=/network]").text()
