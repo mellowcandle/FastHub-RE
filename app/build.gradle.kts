@@ -130,42 +130,42 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     // androidx
-    implementation("androidx.appcompat:appcompat:1.4.2")
-    implementation("androidx.fragment:fragment-ktx:1.5.0")
-    implementation("com.google.android.material:material:1.6.1")
-    implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.recyclerview:recyclerview:1.2.1")
-    implementation("androidx.legacy:legacy-preference-v14:1.0.0")
-    implementation("androidx.browser:browser:1.4.0")
-    implementation("androidx.palette:palette-ktx:1.0.0")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("androidx.core:core-splashscreen:1.0.0-rc01")
+    implementation(libs.appcompat)
+    implementation(libs.fragment.ktx)
+    implementation(libs.material)
+    implementation(libs.cardview)
+    implementation(libs.recyclerview)
+    implementation(libs.legacy.preference.v14)
+    implementation(libs.browser)
+    implementation(libs.palette.ktx)
+    implementation(libs.swiperefreshlayout)
+    implementation(libs.core.splashscreen)
 
     // thirtyinch
-    implementation("com.github.Grandcentrix.ThirtyInch:thirtyinch:v1.0.1")
-    implementation("com.github.Grandcentrix.ThirtyInch:thirtyinch-rx2:v1.0.1")
-    implementation("com.github.Grandcentrix.ThirtyInch:thirtyinch-kotlin:v1.0.1")
-    implementation("com.github.Grandcentrix.ThirtyInch:thirtyinch-kotlin-coroutines:v1.0.1")
+    implementation(libs.thirtyinch)
+    implementation(libs.thirtyinch.rx2)
+    implementation(libs.thirtyinch.kotlin)
+    implementation(libs.thirtyinch.kotlin.coroutines)
 
     // retrofit2
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.retrofit2:adapter-rxjava2:2.9.0")
-    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.adapter.rxjava2)
+    implementation(libs.converter.scalars)
 
     // glide
-    implementation("com.github.bumptech.glide:glide:4.13.1")
+    implementation(libs.glide)
 
     // ShapedImageView
-    implementation("cn.gavinliu:ShapedImageView:0.8.7")
+    implementation(libs.shaped.image.view)
 //    implementation("io.woong.shapedimageview:shapedimageview:1.4.3")
 
     // bottom-navigation
-    implementation("it.sephiroth.android.library.bottomnavigation:bottom-navigation:3.0.0")
+    implementation(libs.bottom.navigation)
 
     // rx2
-    implementation("io.reactivex.rxjava2:rxjava:2.2.21")
-    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
+    implementation(libs.rxjava)
+    implementation(libs.rxandroid)
 
     // autodispose
 //    implementation("com.uber.autodispose2:autodispose:2.1.1")
@@ -174,21 +174,21 @@ dependencies {
 //    implementation("com.uber.autodispose2:autodispose-androidx-lifecycle:2.1.1")
 
     // okhttp3
-    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
-    implementation("com.squareup.okhttp3:okhttp:4.9.3")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation(platform(libs.okhttp.bom))
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 
     // stream
-    implementation("com.annimon:stream:1.2.2")
+    implementation(libs.stream)
 
     // Toasty
-    implementation("com.github.GrenderG:Toasty:1.5.2")
+    implementation(libs.toasty)
 
     // RetainedDateTimePickers
-    implementation("com.github.k0shk0sh:RetainedDateTimePickers:1.0.2")
+    implementation(libs.retaineddatetimepickers)
 
     // material-about-library
-    implementation("com.github.daniel-stoneuk:material-about-library:2.1.0")
+    implementation(libs.material.about.library)
 
     // requery
 //    implementation("io.requery:requery:1.6.0")
@@ -196,78 +196,78 @@ dependencies {
 //    kapt("io.requery:requery-processor:1.6.0")
 
     // about lib
-    implementation("com.mikepenz:aboutlibraries-core:10.0.1")
-    implementation("com.mikepenz:aboutlibraries:10.0.1")
+    implementation(libs.aboutlibraries.core)
+    implementation(libs.aboutlibraries)
 
     // HtmlSpanner
-    implementation("com.github.NightWhistler:HtmlSpanner:0.4")
+    implementation(libs.htmlspanner)
     // htmlcleaner !! 2.2> cause htmlparser to not work properly
-    implementation("net.sourceforge.htmlcleaner:htmlcleaner:2.2")
+    implementation(libs.htmlcleaner)
 
 
     // commonmark
-    implementation("com.atlassian.commonmark:commonmark:0.17.0")
-    implementation("com.atlassian.commonmark:commonmark-ext-autolink:0.17.0")
-    implementation("com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.17.0")
-    implementation("com.atlassian.commonmark:commonmark-ext-gfm-tables:0.17.0")
-    implementation("com.atlassian.commonmark:commonmark-ext-ins:0.17.0")
-    implementation("com.atlassian.commonmark:commonmark-ext-yaml-front-matter:0.17.0")
+    implementation(libs.commonmark)
+    implementation(libs.commonmark.ext.autolink)
+    implementation(libs.commonmark.ext.gfm.strikethrough)
+    implementation(libs.commonmark.ext.gfm.tables)
+    implementation(libs.commonmark.ext.ins)
+    implementation(libs.commonmark.ext.yaml.front.matter)
 
     // kotlin std
 
     // jsoup
-    implementation("org.jsoup:jsoup:1.14.3")
+    implementation(libs.jsoup)
 
     // state
-    implementation("com.evernote:android-state:1.4.1")
-    kapt("com.evernote:android-state-processor:1.4.1")
+    implementation(libs.android.state)
+    kapt(libs.android.state.processor)
 
     // color picker
-    implementation("com.github.kristiyanP:colorpicker:v1.1.10")
+    implementation(libs.colorpicker)
 
     // apollo3
-    implementation("com.apollographql.apollo3:apollo-runtime:3.8.6")
-    implementation("com.apollographql.apollo3:apollo-rx2-support:3.8.6")
+    implementation(libs.apollo.runtime)
+    implementation(libs.apollo.rx2.support)
 
     // device name
-    implementation("com.jaredrummler:android-device-names:2.1.0")
+    implementation(libs.android.device.names)
 
     // keyboard
-    implementation("net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:2.1.0")
+    implementation(libs.keyboardvisibilityevent)
 
     // lottie
-    implementation("com.airbnb.android:lottie:5.0.3")
+    implementation(libs.lottie)
 
     // mmkv
-    implementation("com.tencent:mmkv:1.2.12")
+    implementation(libs.mmkv)
 
     // androidx javax annotation
-    implementation("org.glassfish:javax.annotation:10.0-b28")
-    implementation("androidx.annotation:annotation:1.4.0")
+    implementation(libs.javax.annotation)
+    implementation(libs.annotation)
 
 
     // shortbread
-    implementation("com.github.matthiasrobbers:shortbread:1.4.0")
+    implementation(libs.shortbread)
 //    kapt("com.github.matthiasrobbers:shortbread-compiler:1.4.0")
 
     // objectbox
-    implementation("io.objectbox:objectbox-kotlin:3.8.0")
-    implementation("io.objectbox:objectbox-rxjava:3.8.0")
+    implementation(libs.objectbox.kotlin)
+    implementation(libs.objectbox.rxjava)
 //    debugImplementation("io.objectbox:objectbox-android-objectbrowser:3.1.2")
-    implementation("io.objectbox:objectbox-android:3.8.0")
+    implementation(libs.objectbox.android)
 
 
     // cache
 //    implementation("com.github.ben-manes.caffeine:caffeine:3.0.6")
 
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito:mockito-core:4.4.0")
-    testImplementation("org.assertj:assertj-core:3.22.0")
-    androidTestImplementation("org.mockito:mockito-core:4.4.0")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test:rules:1.4.0")
-    androidTestImplementation("androidx.test.espresso:espresso-intents:3.4.0")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.assertj.core)
+    androidTestImplementation(libs.mockito.core)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.rules)
+    androidTestImplementation(libs.espresso.intents)
+    androidTestImplementation(libs.espresso.core)
 
     // 泄漏检测
 //    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.8.1")
