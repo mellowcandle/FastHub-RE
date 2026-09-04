@@ -44,7 +44,7 @@ android {
     defaultConfig {
         applicationId = "com.fastaccess.github.revival"
         minSdk = 25
-        targetSdk = 31
+        targetSdk = 36
         versionCode = 477
         versionName = "4.7.7"
         buildConfigField("String", "GITHUB_APP_ID", "\"com.fastaccess.github.revival\"")
@@ -89,11 +89,6 @@ android {
     lint {
         htmlReport = true
         xmlReport = true
-        // FastHub-RE ships via GitHub releases and IzzyOnDroid, not Google Play, so
-        // Play's "targetSdk must be >= 33" policy is not a release blocker. Raising
-        // targetSdk is real work (four generations of behaviour changes) and is
-        // tracked as Phase 2 in JOURNAL.md — this only stops lint failing the build.
-        disable += "ExpiredTargetSdkVersion"
     }
     buildFeatures {
         buildConfig = true

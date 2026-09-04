@@ -1,11 +1,16 @@
 package com.fastaccess.ui.modules.main
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.GravityCompat
 import com.evernote.android.state.State
@@ -35,6 +40,26 @@ class MainActivity : BaseActivity<MainMvp.View, MainPresenter>(), MainMvp.View {
     var navType = MainMvp.FEEDS
     var bottomNavigation: BottomNavigation? = null
     var fab: FloatingActionButton? = null
+
+    // Registered as a field: registerForActivityResult must run before STARTED.
+    // The result is deliberately ignored — if the user declines, notifications
+    // simply stay off; nagging on every launch would be worse.
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    /**
+     * From Android 13 the system drops every notification unless POST_NOTIFICATIONS
+     * has been granted. Apps targeting below 33 got an implicit prompt at channel
+     * creation; now that we target 36 we have to ask ourselves.
+     */
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted) return
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
     fun onFilter() {}
     override fun providePresenter(): MainPresenter {
         return MainPresenter()
@@ -74,6 +99,7 @@ class MainActivity : BaseActivity<MainMvp.View, MainPresenter>(), MainMvp.View {
         setToolbarIcon(R.drawable.ic_menu)
         onInit(savedInstanceState)
         fab?.setImageResource(R.drawable.ic_filter)
+        requestNotificationPermissionIfNeeded()
         onNewIntent(intent)
     }
 

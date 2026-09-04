@@ -255,11 +255,11 @@ class NotificationSchedulerJobTask : JobService() {
         accentColor: Int,
         toNotificationActivity: Boolean
     ): android.app.Notification {
-        @SuppressLint("UnspecifiedImmutableFlag") val pendingIntent = PendingIntent.getActivity(
+        val pendingIntent = PendingIntent.getActivity(
             applicationContext,
             0,
             Intent(applicationContext, NotificationActivity::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val builder = getNotification(
             thread.subject?.title!!, thread.repository?.fullName!!,
@@ -319,21 +319,19 @@ class NotificationSchedulerJobTask : JobService() {
         notificationManager.notify(InputHelper.getSafeIntId(id), notification)
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     private fun getReadOnlyPendingIntent(id: Long, url: String): PendingIntent {
         val intent = ReadNotificationService.start(applicationContext, id, url, true)
         return PendingIntent.getService(
             applicationContext, InputHelper.getSafeIntId(id) / 2, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     private fun getPendingIntent(id: Long, url: String): PendingIntent {
         val intent = ReadNotificationService.start(applicationContext, id, url)
         return PendingIntent.getService(
             applicationContext, InputHelper.getSafeIntId(id), intent,
-            PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
 
