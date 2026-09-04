@@ -14,7 +14,7 @@ fun loadConfig(): HashMap<String, String> {
     configs["IMGUR_CLIENT_ID"] = "5fced7f255e1dc9"
     configs["IMGUR_SECRET"] = "03025033403196a4b68b48f0738e67ef136ad64f"
     try {
-        val inputFile = rootProject.file("${rootProject.projectDir}\\app\\secrets.properties")
+        val inputFile = rootProject.file("${rootProject.projectDir}/app/secrets.properties")
         println("Secrets found!\nLoading FastHub-RE credentials...")
         inputFile.forEachLine {
             val data = it.split("=")
@@ -52,10 +52,10 @@ android {
     }
     signingConfigs {
         getByName("debug") {
-            storeFile = file("${rootProject.projectDir}\\app\\keys_debug.jks")
+            storeFile = file("${rootProject.projectDir}/app/keys_debug.jks")
         }
         create("release") {
-            storeFile = file("${rootProject.projectDir}\\app\\keys_release.jks")
+            storeFile = file("${rootProject.projectDir}/app/keys_release.jks")
             storePassword = config["PASSWORD"]
             keyPassword = config["PASSWORD"]
             keyAlias = config["KEY_ALIAS"]
