@@ -109,11 +109,20 @@ Four platform generations of behavior changes. Ship these one at a time, testing
 device between each.
 
 - [ ] `compileSdk`/`targetSdk` 31 → current (`app/build.gradle.kts:34,36`).
-- [ ] **Android 13** — `POST_NOTIFICATIONS` runtime permission. The whole notification path
-      needs a permission request; currently there is none in `AndroidManifest.xml`.
-- [ ] **Android 14** — `foregroundServiceType` now mandatory. Manifest declares
-      `FOREGROUND_SERVICE` with no type.
-- [ ] **Android 12+** — `PendingIntent` mutability flags; exact-alarm restrictions.
+- [ ] **Android 13** — `POST_NOTIFICATIONS`. **This is the real one**, and the only
+      user-visible consequence of staying on targetSdk 31. `POST_NOTIFICATIONS` is not
+      declared anywhere. While we target < 33 the system prompts the user when the app
+      creates its first notification channel
+      (`NotificationSchedulerJobTask.kt:312`), so notifications still work — but if the
+      user dismisses that prompt the app has no way to ask again and notifications
+      silently stop forever. Declaring the permission and requesting it properly is the
+      main win of the bump.
+- [x] ~~**Android 14** — `foregroundServiceType` mandatory~~ **NON-ISSUE.** The manifest
+      declares `FOREGROUND_SERVICE`, but nothing in the codebase ever calls
+      `startForeground()` — all five declared services are plain/JobService. The
+      permission is vestigial and should simply be deleted.
+- [ ] **Android 12+** — `PendingIntent` mutability flags. (Exact alarms: non-issue,
+      no `setExact`/`SCHEDULE_EXACT_ALARM` anywhere.)
 - [ ] Audit `android:exported` on the 4 exported components (manifest lines 62, 77, 290, 329).
 - [ ] **Notifications:** `provider/tasks/notification/NotificationSchedulerJobTask.kt` uses raw
       `JobScheduler`. Consider WorkManager — more robust across OEM battery optimizations.
