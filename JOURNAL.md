@@ -156,9 +156,11 @@ Ordered by risk. The top two are the real work.
       thing upstream objected to. Matters if this is ever published under your name.
 - [ ] Rename / rebrand? `applicationId` is `com.fastaccess.github.revival`. Changing it means
       existing users can't upgrade in place.
-- [ ] Triage the 32 inherited open issues; several are reproducible bugs with real reports
-      (#41 themes, #50 unreadable background, #54 dark theme, #59 trending crash,
-      #60 trending → repo).
+- [x] **#59 (trending crash) and #60 (can't open repo from trending) — FIXED**, one root
+      cause, verified on device. See log below.
+- [ ] Triage the rest of the 32 inherited open issues (#41 themes, #50 unreadable
+      background, #54 dark theme). Worth reporting the trending fix upstream — the
+      maintainer said PRs are still accepted.
 - [ ] Set up F-Droid / IzzyOnDroid publishing — `fastlane/` metadata already exists.
 
 ---
@@ -345,3 +347,35 @@ Still not done: an actual end-to-end login. That needs a human to type
 credentials — either the ACCESS TOKEN path (recommended by the app itself) or
 the browser OAuth path, which is currently blocked behind Chrome's unfinished
 first-run screen on this phone.
+
+### 2026-09-04 — Session 4: logged in, first real bug fixed
+
+**End-to-end verified.** Authorized via OAuth on the device; the app reached
+MainActivity and rendered a live feed with current data, avatars and parsed
+timestamps. That exercises the whole chain — token exchange, REST calls,
+Gson/Retrofit parsing, Glide — on AGP 8.13 / Kotlin 2.2 / compileSdk 36 against
+today's GitHub API. Issues and Pull Requests tabs also load real data.
+
+**Fixed #59 + #60 — one root cause.** GitHub moved the repo name on `/trending`
+from `<h1>` to `<h2 class="h3 lh-condensed">`. `TrendingFragmentPresenter`
+still selected `"h1 > a"`, so every row parsed a **blank title**:
+
+- Rows rendered with description/stars/language but no `owner / repo` heading (#60).
+- `onItemClick` did `title.split("/")` and indexed `[1]`; on a blank title that
+  list has one element → `IndexOutOfBoundsException: Index: 1, Size: 1` (#59).
+  Reproduced on device before fixing.
+
+Fix: accept `"h1 > a, h2 > a"`, and guard the click handler so a future markup
+change degrades to an inert tap instead of a crash. Verified: names render and
+tapping opens the repo with README, stars, forks and license.
+
+**Worth noting for the roadmap:** this is the failure mode to expect from the
+scraped-HTML features generally. Trending has no API; it will break again. The
+guard means the next break is cosmetic rather than a crash.
+
+**On the OAuth app:** the consent screen shows the credentials belong to
+*"Demo FastHub" by Kosh Alsirjani* — the original FastHub author, not the
+FastHub-RE maintainer — requesting private repos, gist write, and workflow
+scope. Since the client secret is public in this repo, another app could
+register the `fasthub://login` scheme and exchange an intercepted code.
+Registering a personal OAuth app (Phase 4) is a security fix, not just hygiene.
