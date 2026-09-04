@@ -3,7 +3,7 @@ plugins {
     id("kotlin-android")
     id("kotlin-parcelize")
     id("kotlin-kapt")
-    id("com.apollographql.apollo3").version("3.1.0")
+    id("com.apollographql.apollo3").version("3.8.6")
     id("com.mikepenz.aboutlibraries.plugin").version("10.0.1")
 }
 
@@ -103,8 +103,9 @@ android {
 //}
 
 apollo {
-    packageName.set("com.fastaccess.github")
-//    generateKotlinModels.set(false)
+    service("service") {
+        packageName.set("com.fastaccess.github")
+    }
 }
 
 dependencies {
@@ -195,7 +196,6 @@ dependencies {
     implementation("com.atlassian.commonmark:commonmark-ext-yaml-front-matter:0.17.0")
 
     // kotlin std
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10")
 
     // jsoup
     implementation("org.jsoup:jsoup:1.14.3")
@@ -208,8 +208,8 @@ dependencies {
     implementation("com.github.kristiyanP:colorpicker:v1.1.10")
 
     // apollo3
-    implementation("com.apollographql.apollo3:apollo-runtime:3.1.0")
-    implementation("com.apollographql.apollo3:apollo-rx2-support:3.1.0")
+    implementation("com.apollographql.apollo3:apollo-runtime:3.8.6")
+    implementation("com.apollographql.apollo3:apollo-rx2-support:3.8.6")
 
     // device name
     implementation("com.jaredrummler:android-device-names:2.1.0")
@@ -233,10 +233,10 @@ dependencies {
 //    kapt("com.github.matthiasrobbers:shortbread-compiler:1.4.0")
 
     // objectbox
-    implementation("io.objectbox:objectbox-kotlin:3.1.2")
-    implementation("io.objectbox:objectbox-rxjava:3.1.2")
+    implementation("io.objectbox:objectbox-kotlin:3.8.0")
+    implementation("io.objectbox:objectbox-rxjava:3.8.0")
 //    debugImplementation("io.objectbox:objectbox-android-objectbrowser:3.1.2")
-    implementation("io.objectbox:objectbox-android:3.1.2")
+    implementation("io.objectbox:objectbox-android:3.8.0")
 
 
     // cache
