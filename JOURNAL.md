@@ -52,20 +52,39 @@ you introduce is indistinguishable from a bug that was always there.
       AGP 7 tolerated but AGP 8's toolchain check rejects. Temurin **21** installed to
       `~/jdks/jdk-21.0.12.1+1` (no sudo needed).
 - [x] **`./gradlew assembleDebug`** — first green build. ✅ 2026-09-04, 5m42s, 22 MB APK.
-- [ ] **Install on a device and log in.**
+- [x] **Installed and launched on a device** (OnePlus 7, Android 12 / API 31) — 2026-09-04.
+      No crash, login chooser renders correctly. Full login still untested (needs a human).
 
-### The single biggest unknown: OAuth
+### The OAuth credentials: ✅ STILL VALID (verified 2026-09-04)
 
-`app/build.gradle.kts:13-16` hardcodes demo credentials (`GITHUB_CLIENT_ID`, `GITHUB_SECRET`,
-plus Imgur). They are four years old and public. **If GitHub has revoked that client, login is
-dead on arrival and nothing else in this plan matters.** Test before writing any code.
+The hardcoded demo credentials in `app/build.gradle.kts` still work. Verified
+against GitHub's token-exchange endpoint, which validates the client id/secret
+pair immediately:
+
+| client_id + secret | GitHub response |
+|---|---|
+| the app's real pair | `bad_verification_code` — pair accepted, only the (deliberately fake) code rejected |
+| a bogus control pair | `Not Found` |
+
+So the OAuth app registered by the FastHub-RE maintainer is still live and the
+revival is not dead on arrival.
+
+**A test that looked convincing and was not:** hitting
+`/login/oauth/authorize` with the real client_id returns `302 → /login`, which
+reads like success. A bogus client_id returns *the same 302* — GitHub defers
+client validation until after sign-in. Only the token endpoint distinguishes
+them. Don't re-derive this the hard way.
+
+Caveats that remain:
+- These are **shared, public** credentials that anyone can extract from the
+  repo, and they can be revoked at any time without warning. Registering a
+  personal OAuth app is still Phase 4 work.
+- What is proven is that the *credentials* are accepted. An end-to-end login
+  (authorize → code → token → API call) has not been run.
 
 Relevant: `helper/GithubConfigHelper.kt`, `provider/rest/LoginProvider.kt`,
-`ui/modules/login/LoginActivity.kt`, `ui/modules/login/LoginPresenter.kt`.
-
-Fallback: register a personal OAuth app, put real values in `app/secrets.properties`
-(gitignored). Note the loader at `app/build.gradle.kts:17` splits on `=` with
-`it.split("=")` — a secret containing `=` will be silently truncated. Worth hardening.
+`ui/modules/login/LoginPresenter.kt` (builds the authorize URL, scopes
+`user,repo,gist,notifications,read:org,workflow,read:packages`).
 
 ---
 
@@ -304,3 +323,25 @@ export ANDROID_HOME=$HOME/Android/Sdk
 1. **Install the APK and log in** (needs the phone) — still the decisive test.
 2. Phase 2: `targetSdk` → 36, one behaviour change at a time, device-verified.
 3. Phase 3: replace `RetainedDateTimePickers` to drop Jetifier.
+
+### 2026-09-04 — Session 3: on-device verification
+
+Phone connected (OnePlus 7 / GM1903, Android 12, API 31), `adb` authorized with
+no udev rules needed.
+
+- **The modernized build runs.** Installed the AGP 8 / Kotlin 2.2 / compileSdk 36
+  APK; it launches to `LoginChooserActivity` with no crash and renders correctly.
+  Phase 1 is now runtime-verified, not just compile-verified.
+- **OAuth credentials confirmed valid** (see Phase 0 above). The single biggest
+  risk to the whole revival is retired.
+
+Note on this device: it is **API 31**, the same as our `targetSdk`. It therefore
+cannot exercise any of the Phase 2 behaviour changes — `POST_NOTIFICATIONS`
+(API 33), foreground service types (34), predictive back. Validating the
+targetSdk bump needs a newer device, or the emulator (which needs VT-x enabled
+in this machine's BIOS).
+
+Still not done: an actual end-to-end login. That needs a human to type
+credentials — either the ACCESS TOKEN path (recommended by the app itself) or
+the browser OAuth path, which is currently blocked behind Chrome's unfinished
+first-run screen on this phone.
