@@ -15,15 +15,23 @@ fun loadConfig(): HashMap<String, String> {
     configs["GITHUB_SECRET"] = "b2d158f949d3615078eaf570ff99eba81cfa1ff9"
     configs["IMGUR_CLIENT_ID"] = "5fced7f255e1dc9"
     configs["IMGUR_SECRET"] = "03025033403196a4b68b48f0738e67ef136ad64f"
-    try {
-        val inputFile = rootProject.file("${rootProject.projectDir}/app/secrets.properties")
-        println("Secrets found!\nLoading FastHub-RE credentials...")
-        inputFile.forEachLine {
-            val data = it.split("=")
-            configs[data[0]] = data[1]
+    val inputFile = rootProject.file("app/secrets.properties")
+    if (!inputFile.exists()) {
+        println("No app/secrets.properties — using public demo credentials.")
+        println("These are shared, four years old, and may have been revoked by GitHub.")
+        return configs
+    }
+    println("Loading FastHub-RE credentials from app/secrets.properties...")
+    inputFile.forEachLine { line ->
+        val trimmed = line.trim()
+        if (trimmed.isEmpty() || trimmed.startsWith("#")) return@forEachLine
+        // limit = 2: base64 and signing secrets routinely contain "=" padding.
+        val data = trimmed.split("=", limit = 2)
+        if (data.size == 2) {
+            configs[data[0].trim()] = data[1].trim()
+        } else {
+            println("Ignoring malformed line in secrets.properties: ${data[0]}")
         }
-    } catch (e: Exception) {
-        println("Secrets not found!\nUsing demo credentials...")
     }
     return configs
 }
