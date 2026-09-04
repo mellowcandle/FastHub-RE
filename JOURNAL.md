@@ -48,8 +48,9 @@ you introduce is indistinguishable from a bug that was always there.
       and `\\app\\secrets.properties`. Nothing builds on Linux until these use `/`.
 - [x] **Install Android SDK** — none present (`ANDROID_HOME` unset). Needs `compileSdk 31`
       + `buildToolsVersion 31.0.0` to match the current config.
-- [x] **Point Gradle at JDK 11** — AGP 7.2.1 predates JDK 17 support; system default is 17.
-      JDK 11 is installed at `/usr/lib/jvm/java-11-openjdk-amd64`.
+- [x] **Provide a real JDK** — the machine had only JREs (no `javac` anywhere), which
+      AGP 7 tolerated but AGP 8's toolchain check rejects. Temurin **21** installed to
+      `~/jdks/jdk-21.0.12.1+1` (no sudo needed).
 - [x] **`./gradlew assembleDebug`** — first green build. ✅ 2026-09-04, 5m42s, 22 MB APK.
 - [ ] **Install on a device and log in.**
 
@@ -68,18 +69,18 @@ Fallback: register a personal OAuth app, put real values in `app/secrets.propert
 
 ---
 
-## Phase 1 — Build system (low risk, unblocks everything)
+## Phase 1 — Build system ✅ DONE (2026-09-04)
 
-- [ ] Cherry-pick / re-apply timscriptov's version catalog → `gradle/libs.versions.toml`.
-- [ ] Gradle wrapper 7.4.1 → 8.x.
-- [ ] AGP 7.2.1 → 8.x (namespace already set, so this is less painful than usual).
-- [ ] Kotlin 1.6.10 → 2.x. Expect `kapt` → **KSP** migration pressure.
-- [ ] Java 8 → 17 target; move off `enableJetifier` if nothing still needs it.
-- [ ] Fix CI: `.github/workflows/android_build.yml` uses `actions/checkout@v3`,
-      `setup-java@v3`, `upload-artifact@v2`, and the **archived** `actions/create-release@v1`
-      and `upload-release-asset@v1.0.1`. Replace the release steps with `gh release create`.
+- [x] Version catalog → `gradle/libs.versions.toml` (63 libraries, 44 version refs).
+- [x] Gradle wrapper 7.4.1 → **8.14.5**.
+- [x] AGP 7.2.1 → **8.13.2**.
+- [x] Kotlin 1.6.10 → **2.2.21**; migrated to the `compilerOptions` DSL.
+- [x] Java 8 → **17**. (`enableJetifier` must stay — see below.)
+- [x] CI rewritten: maintained actions, JDK 21, `gh release create`.
+- [x] ObjectBox 3.1.2 → 3.8.0, Apollo 3.1.0 → 3.8.6, compileSdk 31 → **36**.
 
-Verify after each step: `./gradlew assembleDebug` still green.
+`kapt` still works under K2 (android-state, ObjectBox), so the KSP migration
+is optional rather than forced. Left for later.
 
 ---
 
@@ -112,12 +113,17 @@ Ordered by risk. The top two are the real work.
       of the presenter layer, but only **10 files** import it directly, so replacement is more
       tractable than it first appears.
 - [ ] **Butterknife-style view binding — 39 files** → ViewBinding.
-- [ ] Apollo 3.1.0 → 4.x (GraphQL; 3 `.graphql` files).
+- [x] ~~Apollo 3.1.0 → 3.8.6~~ done in Phase 1. Still worth going to 4.x/5.x later,
+      which is a breaking API change, not just a version bump.
+- [ ] **Replace `RetainedDateTimePickers`** — the last pre-AndroidX dependency and the
+      only thing keeping Jetifier on. Highest-value item in this phase.
+- [ ] `material-about-library` 2.1.0 → 3.1.2 — needs the theme attributes sorted first.
 - [ ] `com.evernote:android-state` — dead; → `SavedStateHandle`.
 - [ ] `com.atlassian.commonmark` — renamed to `org.commonmark` years ago; 6 artifacts to move.
 - [ ] Unmaintained JitPack deps, each a potential build-breaker if the repo vanishes:
       `Toasty`, `HtmlSpanner`, `colorpicker`, `shortbread`, `ShapedImageView`,
       `sephiroth bottom-navigation`, `material-about-library`, `RetainedDateTimePickers`.
+      All now resolve through `libs.versions.toml`, so swapping one is a single edit.
 - [ ] Remove the aliyun mirrors in `build.gradle.kts` — irrelevant outside CN, and extra
       supply-chain surface.
 - [ ] Glide 4.13.1, OkHttp 4.9.3, Retrofit 2.9.0 → current.
@@ -140,14 +146,64 @@ Ordered by risk. The top two are the real work.
 
 ## Known landmines
 
-- `app/build.gradle.kts` uses **Windows path separators** throughout — assume anything
-  filesystem-related in the build was only ever tested on Windows.
-- Release signing expects `app/keys_release.jks`, not in the repo (correctly). Only
-  `keys_debug.jks` is committed.
-- README's own warning from the previous maintainer: *"most of the stuff is deprecated or so
-  stuck together that if you mess something it will be a pain to stacktrace the error."*
-- `minSdk 25` (Android 7.1) — raising it would remove a lot of compat code, at the cost of
-  old devices.
+### ⚠️ This machine crashed the JVM twice (suspect RAM)
+
+Two `SIGSEGV`s in the **C2 JIT compiler thread**, on two different JDKs:
+
+| JDK | Crashing frame |
+|---|---|
+| Temurin 17.0.20.1 | `PhaseOutput::fill_buffer` |
+| Temurin 21.0.12.1 | `PhaseCFG::fixup_flow` |
+
+Different JDK majors crashing at different points inside the JIT is not a
+toolchain bug. The second faulting address was `0x00001000007f953e` — what
+should be a `0x00007f95...` pointer with a stray high bit set, the signature of
+a single-bit memory error. The host is an i7-2600K (2011).
+
+**Both crashes were transient — retrying the identical build succeeded.** But
+treat any one-off build failure here as suspect before believing it, and
+consider running `memtest86+` overnight. If the RAM is bad, it corrupts
+compiler output silently as well as loudly.
+
+### Jetifier cannot be removed yet
+
+`android.enableJetifier=true` is still load-bearing. Exactly one dependency
+still drags in the pre-AndroidX support library:
+
+```
+com.android.support:support-compat:25.1.0
+  └── com.android.support:support-fragment:25.1.0
+      └── com.github.k0shk0sh:RetainedDateTimePickers:1.0.2
+```
+
+That library is by FastHub's original author, dates from 2017, and has no
+AndroidX release. **Replacing it (Material date/time pickers) is what unblocks
+dropping Jetifier** — worth it, since Jetifier rewrites every dependency on
+every build.
+
+(`material-about-library` was the other offender and 3.1.2 fixes its half, but
+see below.)
+
+### material-about-library 3.x needs theme work
+
+Bumping 2.1.0 → 3.1.2 compiles but **fails resource linking**: the app's own
+styles reference `attr/mal_popupOverlay`, `attr/mal_lightActionBar` and
+`style/Theme.Mal.{Dark,Light}.PopupOverlay`, which 3.x removed. Reverted for
+now — it is a themed-UI change that needs to be looked at on a real screen, not
+just compiled.
+
+### Other
+
+- Release signing expects `app/keys_release.jks`, not in the repo (correctly).
+  Only `keys_debug.jks` is committed.
+- README's warning from the previous maintainer: *"most of the stuff is
+  deprecated or so stuck together that if you mess something it will be a pain
+  to stacktrace the error."* So far this has not been borne out — the upgrade
+  ladder went through cleanly.
+- `minSdk 25` (Android 7.1) — raising it would remove a lot of compat code, at
+  the cost of old devices.
+
+---
 
 ---
 
@@ -183,3 +239,68 @@ export ANDROID_HOME=$HOME/Android/Sdk
 
 **Blocked on hardware:** no KVM / no virtualization extensions on this machine, so no emulator.
 The OAuth smoke test (Phase 0's real unknown) needs a physical device over `adb`.
+
+### 2026-09-04 — Session 2 (autonomous): Phase 1 complete
+
+Worked the upgrade ladder on branch `phase1-build-system`, building green at every
+rung. Seven commits, `b8a9fa6..a83b439`.
+
+| | Before | After |
+|---|---|---|
+| Gradle | 7.4.1 | **8.14.5** |
+| AGP | 7.2.1 | **8.13.2** |
+| Kotlin | 1.6.10 | **2.2.21** |
+| Java | 8 | **17** |
+| compileSdk | 31 | **36** |
+| ObjectBox | 3.1.2 | **3.8.0** |
+| Apollo | 3.1.0 | **3.8.6** |
+| targetSdk | 31 | **31** (deliberately unchanged — Phase 2) |
+
+**The upgrades were interlocked, each forcing the next:** ObjectBox had to move
+first because AGP 8 removed the Transform API it used; ObjectBox 3.8 pulls
+kotlin-stdlib 1.8.20, which collided with the pinned `kotlin-stdlib-jdk8:1.6.10`
+(merged into the main stdlib in Kotlin 1.8) — forcing Kotlin 1.9; under Kotlin 1.9
+the Apollo 3.1.0 plugin stopped putting generated sources on the compile classpath
+(263 unresolved references) — forcing Apollo 3.8.6.
+
+**AGP 8 broke 16 source files, all legitimately:**
+- `android.nonTransitiveRClass` now defaults true, so the app's `R` stopped
+  re-exporting library resources. Six references repointed at the owning library
+  (`androidx.appcompat`, `com.google.android.material`,
+  `com.danielstone.materialaboutlibrary`) rather than setting the compatibility
+  flag, which AGP 9 removes anyway.
+- compileSdk 36 tightened platform nullability: `MenuItem.getIcon()`,
+  `PackageInfo.applicationInfo`, `onDraw(Canvas)`, `Canvas.getClipBounds(Rect)`,
+  `AnimatorListener.onAnimationEnd`.
+
+**Also fixed along the way:**
+- CI was not merely stale but *incapable of running* — `actions/create-release@v1`
+  and `upload-release-asset@v1.0.1` are archived and `upload-artifact@v2` is
+  disabled by GitHub. Rewritten around `gh release create`.
+- `loadConfig` printed "Secrets found!" *before* reading the file (every build
+  logged both found and not-found) and split on every `=`, truncating any secret
+  containing one — which base64 and signing values routinely do.
+- Removed a dead `registerForActivityResult` block in `ThemeFragment` whose `when`
+  had three branches all matching the literal `"placeholder"` — leftover from the
+  in-app-purchase removal. Nothing ever launched it.
+
+**Not done, and why:**
+- `targetSdk` stays 31. Bumping it opts into four generations of runtime behaviour
+  changes that need a device to validate. That is Phase 2 and it is blocked on
+  hardware, not on effort.
+- Nothing here has been **run**. Everything is compile-verified only. The OAuth
+  smoke test from Phase 0 is still the open question that governs whether any of
+  this matters.
+
+**Build environment:**
+```bash
+export JAVA_HOME=$HOME/jdks/jdk-21.0.12.1+1
+export ANDROID_HOME=$HOME/Android/Sdk
+./gradlew assembleDebug     # ~1m30s from scratch, 22 MB APK
+```
+
+### Next up
+
+1. **Install the APK and log in** (needs the phone) — still the decisive test.
+2. Phase 2: `targetSdk` → 36, one behaviour change at a time, device-verified.
+3. Phase 3: replace `RetainedDateTimePickers` to drop Jetifier.
