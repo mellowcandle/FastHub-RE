@@ -89,6 +89,11 @@ android {
     lint {
         htmlReport = true
         xmlReport = true
+        // FastHub-RE ships via GitHub releases and IzzyOnDroid, not Google Play, so
+        // Play's "targetSdk must be >= 33" policy is not a release blocker. Raising
+        // targetSdk is real work (four generations of behaviour changes) and is
+        // tracked as Phase 2 in JOURNAL.md — this only stops lint failing the build.
+        disable += "ExpiredTargetSdkVersion"
     }
     buildFeatures {
         buildConfig = true

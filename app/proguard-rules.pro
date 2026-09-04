@@ -1,7 +1,17 @@
--keepattributes SourceFile,LineNumberTable
+# Anonymous Gson TypeToken subclasses resolve their type argument through
+# getGenericSuperclass(), which needs Signature *and* the InnerClasses /
+# EnclosingMethod attributes. Without them R8 release builds die on startup with
+# "Missing type parameter." from BaseConverter.genericType() while ObjectBox is
+# registering its custom property converters.
+-keepattributes SourceFile,LineNumberTable,*Annotation*,Signature,InnerClasses,EnclosingMethod
 -dontobfuscate
+# NB: R8 ignores -optimizations entirely; kept only for ProGuard compatibility.
 -optimizations !code/simplification/arithmetic,!field/*,!class/merging/*,!code/allocation/variable
--keepattributes *Annotation*,Signature
+
+# Gson reflection (these ship as consumer rules in Gson 2.10+, which we predate).
+-keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
+-keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
+-dontwarn sun.misc.**
 
 -keepclassmembers class com.fastaccess.** { *; }
 -keep class com.fastaccess.** { *; }
