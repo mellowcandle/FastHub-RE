@@ -247,19 +247,26 @@ class FeedsViewHolder(
         spannableBuilder: SpannableBuilder,
         eventsModel: Event
     ) {
-        val pullRequest = eventsModel.payload!!.pullRequest
-        val comment = eventsModel.payload!!.comment
+        val payload = eventsModel.payload
+        val pullRequest = payload?.pullRequest
+        // This handler serves both PullRequestReviewCommentEvent and
+        // PullRequestReviewEvent, but only the former carries a comment. GitHub sends
+        // a "review" object for the latter, which PayloadModel does not parse, so
+        // comment is routinely null here — it must not be dereferenced blindly.
+        val body = payload?.comment?.body
         spannableBuilder.bold("reviewed")
             .append(" ")
             .bold("pull request")
             .append(" ")
             .bold("in")
             .append(" ")
-            .append(eventsModel.repo!!.name)
-            .bold("#")
-            .bold(pullRequest!!.number.toString())
-        if (comment!!.body != null) {
-            stripMdText(description!!, comment.body!!.replace("\\r?\\n|\\r".toRegex(), " "))
+            .append(eventsModel.repo?.name)
+        if (pullRequest != null) {
+            spannableBuilder.bold("#")
+                .bold(pullRequest.number.toString())
+        }
+        if (body != null) {
+            stripMdText(description!!, body.replace("\\r?\\n|\\r".toRegex(), " "))
             description.visibility = View.VISIBLE
         } else {
             description!!.text = ""
