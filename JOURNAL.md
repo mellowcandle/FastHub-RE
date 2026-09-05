@@ -424,3 +424,41 @@ design; the OnePlus 7 was running a debug build.
   normal use are clean; individual screens have not each been opened.
 
 Phase 2 is otherwise done.
+
+### 2026-09-05 — Session 6: user-reported crash, root-caused and fixed
+
+User reported a reproducible crash while scrolling Feeds. Captured on device:
+
+```
+java.lang.NullPointerException
+  at FeedsViewHolder.appendPullRequestReviewCommentEvent(FeedsViewHolder.kt:261)
+  at FeedsViewHolder.bind(FeedsViewHolder.kt:86)
+```
+
+**Root cause.** `bind()` routes *two* event types to one handler —
+`PullRequestReviewCommentEvent` and `PullRequestReviewEvent`. Only the first has a
+`comment`. GitHub sends a `review` object for the second, and **`PayloadModel` has
+no `review` field at all**, so `payload.comment` is *always* null for it. Line 261
+did `comment!!.body`.
+
+So every PR approval or changes-requested review in a feed was a landmine: the app
+died the moment that row was bound, which presents as "crashes when I scroll".
+
+**Fix:** dereference the comment safely, and only append the PR number when a pull
+request is present. A review with no comment renders the headline with the
+description hidden — identical to what the existing else-branch already did.
+
+**Verified on device:** 75 swipes up and down through the feed, zero crashes, the
+process never restarted (same pid throughout). A screenshot caught both cases
+rendering correctly in the same feed — a review event with the eye icon and no
+body, and a review-comment event with the comment icon and its body.
+
+**Left undone deliberately:** the review *state* (approved / changes requested) and
+the review body are not shown, because `PayloadModel` does not model GitHub's
+review object. Adding it means extending the model, its `Parcelable` and its
+converter — a feature, not part of this crash fix. Good next task.
+
+**Note on the release build:** `-dontobfuscate` in `proguard-rules.pro` means
+minified release builds still produce stack traces with real class names and line
+numbers. That is why this was diagnosable directly from a user-reported crash with
+no deobfuscation step. Worth keeping.
