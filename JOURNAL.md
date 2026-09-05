@@ -388,3 +388,39 @@ FastHub-RE maintainer — requesting private repos, gist write, and workflow
 scope. Since the client secret is public in this repo, another app could
 register the `fasthub://login` scheme and exchange an intercepted code.
 Registering a personal OAuth app (Phase 4) is a security fix, not just hygiene.
+
+### 2026-09-05 — Session 5: Phase 2 verified on Android 16
+
+Tested on a **OnePlus 12 (CPH2581), Android 16 / API 36** — five levels above the
+old targetSdk, the device this project had been blocked on.
+
+**Verified:**
+- `targetSdk=36` confirmed by the system after install; app launches with zero
+  fatal exceptions.
+- **`POST_NOTIFICATIONS: granted=true, flags=[USER_SET|...]`.** `USER_SET` means a
+  human was shown the dialog and accepted. Before the change the same device
+  reported `granted=false` with no `USER_SET`. The runtime request added to
+  `MainActivity` works end to end.
+- Layout is correct under Android 15+ enforced edge-to-edge — content sits below
+  the status bar and above the nav bar. The existing `fitsSystemWindows="true"`
+  on the main layouts is doing its job; no inset work needed.
+- **No crashes during real use.** After the owner logged in and browsed, the crash
+  log buffer and dropbox both hold zero records for the package. The R8-minified
+  release build is holding up beyond startup.
+
+**A false alarm worth recording:** the "CHOOSE LANGUAGE" button visible on the
+OnePlus 7 is absent here, which looked like an edge-to-edge regression. It is
+not — `LoginChooserActivity.kt:81` has
+`if (!BuildConfig.DEBUG) languageSelector.visibility = View.GONE`. Debug-only by
+design; the OnePlus 7 was running a debug build.
+
+**Still not exercised:**
+- **Notification delivery.** `dumpsys jobscheduler` shows no registered job for
+  the package, so the scheduler has not run. The `PendingIntent` `FLAG_IMMUTABLE`
+  fix is therefore compile-verified and logically sound but has not actually
+  built a notification at runtime. To close this: enable notifications in the
+  app's settings and let the interval elapse (minimum 20 minutes).
+- A deliberate walk of every screen on the minified build. Startup, login and
+  normal use are clean; individual screens have not each been opened.
+
+Phase 2 is otherwise done.
