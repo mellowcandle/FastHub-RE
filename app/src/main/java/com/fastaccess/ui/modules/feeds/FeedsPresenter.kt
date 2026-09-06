@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import com.fastaccess.data.dao.NameParser
+import com.fastaccess.data.dao.PayloadModel
 import com.fastaccess.data.dao.Pageable
 import com.fastaccess.data.dao.SimpleUrlsModel
 import com.fastaccess.data.dao.types.EventsType
@@ -12,6 +13,7 @@ import com.fastaccess.data.entity.dao.EventDao
 import com.fastaccess.data.entity.dao.LoginDao
 import com.fastaccess.helper.*
 import com.fastaccess.provider.rest.RestProvider
+import com.fastaccess.provider.scheme.LinkParserHelper
 import com.fastaccess.provider.scheme.LinkParserHelper.isEnterprise
 import com.fastaccess.provider.scheme.SchemeParser.launchUri
 import com.fastaccess.ui.base.mvp.presenter.BasePresenter
@@ -157,11 +159,11 @@ class FeedsPresenter : BasePresenter<FeedsMvp.View>(), FeedsMvp.Presenter {
                         v.context.startActivity(intent)
                     }
                 } else if (payloadModel.issue != null) {
-                    launchUri(v.context, Uri.parse(payloadModel.issue!!.htmlUrl), true)
+                    launchWebUri(v.context, payloadModel.issue!!.htmlUrl)
                 } else if (payloadModel.pullRequest != null) {
-                    launchUri(v.context, Uri.parse(payloadModel.pullRequest!!.htmlUrl), true)
+                    launchWebUri(v.context, pullRequestWebUrl(payloadModel))
                 } else if (payloadModel.comment != null) {
-                    launchUri(v.context, Uri.parse(payloadModel.comment!!.htmlUrl), true)
+                    launchWebUri(v.context, payloadModel.comment!!.htmlUrl)
                 } else if (item.type === EventsType.ReleaseEvent && payloadModel.release != null) {
                     val nameParser = NameParser(
                         payloadModel.release!!.htmlUrl
@@ -221,5 +223,37 @@ class FeedsPresenter : BasePresenter<FeedsMvp.View>(), FeedsMvp.Presenter {
                 RepoPagerActivity.startRepoPager(v.context, parser)
             }
         }
+    }
+
+    /** Uri.parse(null) throws, so never hand it a missing URL. */
+    private fun launchWebUri(context: android.content.Context, url: String?) {
+        if (url.isNullOrEmpty()) return
+        launchUri(context, Uri.parse(url), true)
+    }
+
+    /**
+     * GitHub trimmed the events payload: payload.pull_request now carries only
+     * url / id / number / head / base — there is no html_url any more — so the old
+     * Uri.parse(pullRequest.htmlUrl) threw NullPointerException on every pull
+     * request row in the feed. Other payload objects (issue, comment, review,
+     * release) still include html_url, so only this one needs rebuilding.
+     *
+     * Reconstruct the web URL from the API url, which NameParser already knows how
+     * to read for both github.com and Enterprise.
+     */
+    private fun pullRequestWebUrl(payload: PayloadModel): String? {
+        val pullRequest = payload.pullRequest ?: return null
+        if (!pullRequest.htmlUrl.isNullOrEmpty()) return pullRequest.htmlUrl
+        val apiUrl = pullRequest.url
+        if (apiUrl.isNullOrEmpty() || pullRequest.number <= 0) return null
+        val parser = NameParser(apiUrl)
+        val username = parser.username ?: return null
+        val name = parser.name ?: return null
+        val host = if (parser.isEnterprise) {
+            Uri.parse(apiUrl).host ?: return null
+        } else {
+            LinkParserHelper.HOST_DEFAULT
+        }
+        return "${LinkParserHelper.PROTOCOL_HTTPS}://$host/$username/$name/pull/${pullRequest.number}"
     }
 }
